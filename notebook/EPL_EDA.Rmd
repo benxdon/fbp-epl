@@ -1,0 +1,73 @@
+---
+title: "analysis_football"
+author: "Lin Chung Hay Brandon"
+date: "2025-12-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this data analysis, we will be assesing whether ELO can be used as a metric to 
+
+needed library for the analysis
+```{r}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+```
+
+
+## loading and cleaning data
+In this project, we need to convert the whole thing into a binary classification problem, win or not win (including lose and draw), and the win rate based on the range of elo difference
+Therefore, in this code chunk, we will create the table being described above
+
+```{r}
+elo <- read_csv("EloRatings.csv")
+matches <- read_csv("Matches.csv")
+
+matches <- matches |> 
+  mutate(DiffElo = HomeElo - AwayElo, Result = ifelse(FTResult == "H", 1, 0)) |> #result simplified into whether the home team wins or not
+  filter(Division == "E0") |>
+  select(MatchDate, HomeTeam, AwayTeam, DiffElo, Result)
+
+groups <- seq(min(matches$DiffElo, na.rm=TRUE), max(matches$DiffElo, na.rm=TRUE), length.out=11)
+
+matches <- matches |>
+  mutate(
+    elo_bin = cut(DiffElo, breaks = groups, include.lowest=TRUE)
+  )
+```
+
+## dividing data into bins
+After we got the data, we divide it into bins to attain the probability per bin
+
+```{r}
+summary <- matches |> 
+  group_by(elo_bin) |>
+  summarise(
+    n = n(),
+    win_rate = mean(Result, na.rm=TRUE),
+    .groups = "drop"
+  ) |> 
+  filter(!is.na(elo_bin)) |>
+  mutate(bin_center = (groups[-1]+groups[-length(groups)])/2)
+```
+
+## visualizing the data
+
+```{r}
+
+ggplot(summary, aes(bin_center, win_rate)) + 
+  geom_point() + 
+  scale_y_continuous(limits = c(0,1)) +
+  labs(
+    title = "Home Win Prob vs Elo Difference (EPL)",
+    x = "Elo difference (home - away)",
+    y = "Home win probability",
+  ) +
+  theme_minimal()
+```
+We can see that there is an association between the ELO difference and the win rate, the higher the diff, the larger the win rate. Therefore we shall move to the next step of putting the parameteres into the ML model. 
