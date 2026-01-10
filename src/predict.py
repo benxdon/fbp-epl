@@ -3,11 +3,65 @@ import pandas as pd
 from features import build_features
 from thefuzz import fuzz, process
 
-def input_prep(input_raw):
-    
-    
+def process_input(inputs):
 
-    return inputs
+    # load matches
+    matches = pd.read_csv("data/Matches.csv" , low_memory=False)
+
+    # build hist
+    home = (
+        matches[["MatchDate","HomeTeam","HomeTarget","FTResult"]]
+        .assign(Points=lambda x: x["FTResult"].map({"H":3,"D":1,"A":0}))
+        .rename(columns={"HomeTeam":"Team","HomeTarget":"Target"})
+    )
+
+    away = (
+        matches[["MatchDate","AwayTeam","AwayTarget","FTResult"]]
+        .assign(Points=lambda x: x["FTResult"].map({"H":0,"D":1,"A":3}))
+        .rename(columns={"AwayTeam":"Team","AwayTarget":"Target"})
+    )
+
+    hist = pd.concat([home, away]).sort_values(["MatchDate","Team"])
+
+    hist["SOT5"] = hist.groupby("Team")["Target"].transform(
+        lambda x: x.shift(1).rolling(5).sum()
+    )
+    hist["Form5"] = hist.groupby("Team")["Points"].transform(
+        lambda x: x.shift(1).rolling(5).mean()
+    )
+
+    hist = hist.dropna(subset=["Form5","SOT5"])[["MatchDate","Team","SOT5","Form5"]]
+
+    # ensure datetime
+    hist["MatchDate"] = pd.to_datetime(hist["MatchDate"])
+    inputs = inputs.copy()
+    inputs["MatchDate"] = pd.to_datetime(inputs["MatchDate"])
+
+    # merge home
+    df = pd.merge_asof(
+        inputs.sort_values(by="MatchDate"),
+        hist.sort_values(by="MatchDate"),
+        left_on="MatchDate", right_on="MatchDate",
+        left_by="HomeTeam", right_by="Team",
+        direction="backward"
+    ).rename(columns={"SOT5":"SOT5Home","Form5":"Form5Home"})
+
+    # merge away
+    df = pd.merge_asof(
+        df.sort_values(by="MatchDate"),
+        hist.sort_values(by="MatchDate"),
+        left_on="MatchDate", right_on="MatchDate",
+        left_by="AwayTeam", right_by="Team",
+        direction="backward"
+    ).rename(columns={"SOT5":"SOT5Away","Form5":"Form5Away"})
+
+    # features
+    df["DiffElo"]   = df["HomeElo"]  - df["AwayElo"]
+    df["DiffSOT5"]  = df["SOT5Home"] - df["SOT5Away"]
+    df["DiffForm5"] = df["Form5Home"] - df["Form5Away"]
+
+    return df[["MatchDate","HomeTeam","AwayTeam","DiffElo","DiffSOT5","DiffForm5"]].reset_index(drop=True)
+
 
 def predict_matches(raw_df):
     
@@ -56,19 +110,13 @@ if __name__ == "__main__":
             "AwayTeam" : awayTeam,
             "HomeElo" : int(homeElo),
             "AwayElo" : int(awayElo),
-            "MatchDate" : pd.to_datetime(pd.series(date))
+            "MatchDate" : pd.to_datetime(date)
         }])
 
-    inputs = input_prep(inputs)
+    inputs = process_input(inputs)
     
     preds = predict_matches(inputs)    
     
     print(preds)
 
 
-
-    '''
-    for tomorrow, you can try to someway to make the inputs file to have the DiffSOT5 and the DiffForm5
-    by maybe redesigning the build_features or implement the whole new thing
-    for redesigning the build_features maybe you will have to sort, and then search for the matches before the date only, so make sure that you have the right approach
-    '''
