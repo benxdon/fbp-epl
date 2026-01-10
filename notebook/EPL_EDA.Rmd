@@ -25,8 +25,8 @@ In this project, we need to convert the whole thing into a binary classification
 Therefore, in this code chunk, we will create the table being described above
 
 ```{r}
-elo <- read_csv("EloRatings.csv")
-matches <- read_csv("Matches.csv")
+elo <- read_csv("../data/EloRatings.csv")
+matches <- read_csv("../data/Matches.csv")
 
 matches <- matches |> 
   mutate(DiffElo = HomeElo - AwayElo, Result = ifelse(FTResult == "H", 1, 0)) |> #result simplified into whether the home team wins or not

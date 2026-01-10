@@ -2,7 +2,7 @@ import pandas as pd
 
 def rolling_mean_prev_k(df, k):
     shifted = df.shift(1)
-    return shifted.rolling(5).mean()
+    return shifted.rolling(k).mean()
 
 def build_features(matches):
     matches = matches[matches["Division"] == "E0"].copy()

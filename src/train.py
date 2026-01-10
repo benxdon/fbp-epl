@@ -10,8 +10,8 @@ matches = pd.read_csv("data/Matches.csv", low_memory=False)
 
 df = build_features(matches)
 
-train = df[df["MatchDate"] < "2018-01-01"]
-test = df[df["MatchDate"] >= "2018-01-01"]
+train = df[df["MatchDate"] < "2020-01-01"]
+test = df[df["MatchDate"] >= "2020-01-01"]
 
 X_train = train[["DiffElo","DiffForm5","HomeAdv","DiffSOT5"]]
 X_test = test[["DiffElo","DiffForm5","HomeAdv","DiffSOT5"]]
