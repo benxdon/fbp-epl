@@ -1,4 +1,4 @@
-#EPL Home Win Probability Predictor
+# EPL Home Win Probability Predictor
 
 A small CLI tool that estimates the probability of a **home team win** in EPL matches.
 No crystal balls, no guarantees. Just math, history, and a little football logic.
