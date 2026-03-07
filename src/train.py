@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from sklearn.metrics import log_loss, roc_auc_score, accuracy_score
 import joblib
 
@@ -31,16 +32,10 @@ print("Log loss:", log_loss(y_test,y_pred))
 print("AUC: ", roc_auc_score(y_test,y_pred))
 print("Accuracy: ", accuracy_score(y_test,y_class))
 
-joblib.dump(log_reg, "model_lr.pkl")
+joblib.dump(log_reg, "models/model_lr.pkl")
 
 
-rf = RandomForestClassifier(
-        n_estimators=300,
-        max_depth=6,
-        min_samples_leaf=50,
-        random_state=42,
-        n_jobs=1
-        )
+rf = RandomForestClassifier(n_estimators=300,max_depth=6,min_samples_leaf=50,random_state=42,n_jobs=1)
 
 rf.fit(X_train,y_train)
 
@@ -52,4 +47,18 @@ print("Log loss: ", log_loss(y_test, rf_pred))
 print("AUC: ", roc_auc_score(y_test, rf_pred))
 print("Accuracy: ", accuracy_score(y_test, rf_class))
 
-joblib.dump(rf, "model_rf.pkl")
+joblib.dump(rf, "models/model_rf.pkl")
+
+
+xgb = XGBClassifier(n_estimators=300,learning_rate=0.05,max_depth=4)
+xgb.fit(X_train,y_train)
+
+xgb_pred = xgb.predict_proba(X_test)[:,1]
+xgb_class = (xgb_pred >= 0.5).astype(int)
+
+print("\nXGBoost model:")
+print("Log loss: ", log_loss(y_test, xgb_pred))
+print("AUC: ", roc_auc_score(y_test, xgb_pred))
+print("Accuracy: ", accuracy_score(y_test, xgb_class))
+
+joblib.dump(xgb, "models/model_xgb.pkl")
