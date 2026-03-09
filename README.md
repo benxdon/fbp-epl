@@ -55,8 +55,8 @@ Trained on historical EPL data (2000-2025):
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/benxdon/epl-football-match-prediction
-cd epl-football-match-prediction
+git clone https://github.com/benxdon/fbp-epl
+cd fbp-epl
 ```
 
 ### 2. Set Up Virtual Environment
@@ -87,7 +87,7 @@ Place a `Matches.csv` file inside the `data/` folder.
 ## Project Structure
 
 ```
-epl-football-match-prediction/
+fbp-epl/
 ├── data/
 │   ├── Matches.csv        # Historical match data
 │   └── EloRatings.csv     # (Optional) Historical Elo ratings
