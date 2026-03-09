@@ -1,12 +1,17 @@
+certifi==2026.2.25
+charset-normalizer==3.4.5
+idna==3.11
 joblib==1.5.3
 numpy==2.4.2
 nvidia-nccl-cu12==2.29.7
 pandas==3.0.1
 python-dateutil==2.9.0.post0
 RapidFuzz==3.14.3
+requests==2.32.5
 scikit-learn==1.8.0
 scipy==1.17.1
 six==1.17.0
 thefuzz==0.22.1
 threadpoolctl==3.6.0
+urllib3==2.6.3
 xgboost==3.2.0
